@@ -1,0 +1,14 @@
+.edit-icon-btn,
+.delete-icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.edit-icon-btn {
+  color: #0d6efd;
+}
+
+.delete-icon-btn {
+  color: #dc3545;
+}

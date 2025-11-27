@@ -1,0 +1,14 @@
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 15px;
+}
+
+.auth-logo {
+  width: 120px;
+  height: auto;
+}
+
+input::placeholder {
+  font-size: 14px;
+}

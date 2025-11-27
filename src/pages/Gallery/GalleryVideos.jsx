@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Container } from "react-bootstrap";
-import GalleryTable from "./GalleryTable";
+import GalleryTable from "./Gallerytable.jsx";
 import GalleryModal from "../../component/Modals/GalleryModal";
 import { useGallery } from "../../context/GalleryContext";
 

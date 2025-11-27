@@ -27,8 +27,8 @@ import { NewsProvider } from "../context/NewsContext";
 import { JourneyProvider } from "../context/JourneyContext";
 import Sponsors from "../pages/Outreach/Sponsors";
 import Footer from "../component/Footer";
-import SignIn from "../pages/auth/SignIn";
-import SignUp from "../pages/auth/SignUp";
+import SignIn from "../pages/auth/Signin.jsx";
+import SignUp from "../pages/auth/Signup.jsx";
 
 
 

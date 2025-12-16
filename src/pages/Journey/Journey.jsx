@@ -186,8 +186,9 @@ const openEditModal = (row) => {
               }}
             >
               <option value={5}>Show 5</option>
-              <option value={1}>Show 1</option>
               <option value={10}>Show 10</option>
+              <option value={25}>Show 25</option>
+              <option value={50}>Show 50</option>
             </Form.Select>
           </Col>
 

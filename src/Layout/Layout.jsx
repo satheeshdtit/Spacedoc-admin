@@ -30,7 +30,7 @@ import AddNews from "../pages/News/AddNews";
 import NewsVideos from "../pages/News/AddNewsVideos";
 
 import Signin from "../pages/auth/Signin";
-import SignUp from "../pages/auth/SignUp";
+import SignUp from "../pages/auth/SignUp.jsx";
 
 /* ---------------- PROTECTED ROUTE ---------------- */
 function ProtectedRoute({ children }) {

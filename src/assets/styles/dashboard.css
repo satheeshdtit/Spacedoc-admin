@@ -34,9 +34,11 @@
 }
 
 /* Icon Box (same for all) */
+/* Icon Box - Responsive Fix */
 .grad-icon {
   width: 60px;
   height: 60px;
+  min-width: 60px; /* Prevent shrinking */
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.15);
   display: flex;
@@ -44,15 +46,78 @@
   align-items: center;
   backdrop-filter: blur(6px);
   box-shadow: 0 8px 20px rgba(255, 255, 255, 0.15);
+  flex-shrink: 0; /* Prevents icon from shrinking */
 }
 
-/* Icon Image or React Icon */
+/* Icon Image - Responsive Fix */
 .grad-icon-img {
   width: 34px;
   height: 34px;
-  object-fit: contain;
+  max-width: 100%; /* Makes it responsive */
+  max-height: 100%;
+  object-fit: contain; /* Prevents distortion */
 }
 
+/* Add these responsive styles at the end of your file */
+
+/* For tablets and smaller screens */
+@media (max-width: 992px) {
+  .grad-icon {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+  }
+  
+  .grad-icon-img {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* For mobile devices */
+@media (max-width: 768px) {
+  .grad-icon {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    border-radius: 14px;
+  }
+  
+  .grad-icon-img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* For small mobile devices */
+@media (max-width: 576px) {
+  .grad-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 12px;
+  }
+  
+  .grad-icon-img {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* For extra small devices */
+@media (max-width: 400px) {
+  .grad-icon {
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    border-radius: 10px;
+  }
+  
+  .grad-icon-img {
+    width: 20px;
+    height: 20px;
+  }
+}
 /* Text */
 .grad-number {
   font-size: 28px;

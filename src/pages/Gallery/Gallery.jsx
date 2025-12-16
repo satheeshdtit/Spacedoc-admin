@@ -1,63 +1,184 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Container } from "react-bootstrap";
-import GalleryTable from "../../pages/Gallery/GalleryTable"; 
-import GalleryModal from "../../component/Modals/GalleryModal";
-import { useGallery } from "../../context/GalleryContext";
+import GalleryTable from "./Gallerytable";
+import GalleryModal from "./GalleryModal";
+import axios from "axios";
 
 const GalleryImages = () => {
-  const { images, deleteImage, updateImage } = useGallery();
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const [images, setImages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  // Group images by category & count dynamically
-  const groupedImages = useMemo(() => {
-    const result = {};
-    images.forEach((img) => {
-      // ensure category exists (fallback)
-      const cat = img.category ?? "Uncategorized";
-      if (!result[cat]) {
-        result[cat] = { count: 0, order_id: img.order_id };
+  // --------------------------------------------------------------
+  // GET TOKEN HELPER
+  // --------------------------------------------------------------
+  const getToken = () => {
+    try {
+      const authUserStr = localStorage.getItem("authUser");
+      if (!authUserStr) {
+        console.error("No authUser found in localStorage");
+        return null;
       }
-      result[cat].count++;
+
+      const authUser = JSON.parse(authUserStr);
+      return authUser?.token || null;
+    } catch (error) {
+      console.error("Error parsing authUser:", error);
+      return null;
+    }
+  };
+
+ const fetchGallery = async () => {
+  try {
+    const res = await axios.get(
+      `${BASE_URL}${import.meta.env.VITE_API_GET_ALL_GALLERY}?limit=10000&page=1`
+    );
+
+    const apiImages = res.data?.data || [];
+
+    const parsed = apiImages.map((item) => ({
+      id: item.id,
+      category: item.category,
+      title: item.title,
+      date: item.date,
+      order_id: item.order_id,
+      image_url: item.image_url,
+    }));
+
+    setImages(parsed);
+  } catch (err) {
+    console.error("Gallery Load Error:", err);
+    alert("Failed to load gallery images.");
+  }
+};
+
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchGallery();
+  }, []);
+
+  const groupedImages = useMemo(() => {
+    const groups = {};
+
+    images.forEach((img) => {
+      const cat = img.category || "Uncategorized";
+      if (!groups[cat]) {
+        groups[cat] = { count: 0, order_id: img.order_id };
+      }
+      groups[cat].count++;
     });
 
-    return Object.entries(result).map(([category, values], index) => ({
-      id: index + 1,
+    return Object.entries(groups).map(([category, val], i) => ({
+      id: i + 1,
       category,
-      total_images: values.count,
-      order_id: values.order_id,
+      total_images: val.count,
+      order_id: val.order_id,
     }));
   }, [images]);
 
-  // OPEN MODAL
   const handleOpenModal = (category) => {
     setSelectedCategory(category);
     setShowModal(true);
+    window.dispatchEvent(new Event("modal-open"));
   };
 
-  // DELETE category row → delete all images in that category
-  const handleDelete = (row) => {
-    const confirmDelete = window.confirm(
+  const handleDelete = async (row) => {
+    const ok = window.confirm(
       `Delete all images under category "${row.category}"?`
     );
-    if (!confirmDelete) return;
+    if (!ok) return;
 
-    images
-      .filter((img) => (img.category ?? "Uncategorized") === row.category)
-      .forEach((img) => deleteImage(img.id));
+    const token = getToken();
+    if (!token) {
+      alert("Authentication token not found. Please login again.");
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/admin/deleteGalleryCategory`,
+        { category: row.category },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (res.data.status === "success") {
+        alert("Category deleted successfully!");
+        fetchGallery();
+      } else {
+        alert(
+          "Failed to delete category: " + (res.data.message || "Unknown error")
+        );
+      }
+    } catch (err) {
+      console.error("DELETE CATEGORY ERROR:", err);
+
+      if (err.response) {
+        alert(
+          `Failed: ${
+            err.response.data.message || `Error ${err.response.status}`
+          }`
+        );
+      } else {
+        alert("Failed to delete category. Please try again.");
+      }
+    }
   };
 
-  // ON EDIT: update all images in category with new order_id
-  const handleEdit = (row, newOrderId) => {
-    images
-      .filter((img) => (img.category ?? "Uncategorized") === row.category)
-      .forEach((img) => updateImage(img.id, { order_id: newOrderId }));
+  const handleEdit = async (row, newOrderId) => {
+    const token = getToken();
+    if (!token) {
+      alert("Authentication token not found. Please login again.");
+      return;
+    }
+
+    try {
+      const res = await axios.put(
+        `${BASE_URL}/admin/imageOrder`,
+        {
+          category: row.category,
+          order_id: newOrderId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (res.data.status === "success") {
+        alert("Order updated successfully!");
+        fetchGallery();
+      } else {
+        alert("Order update failed: " + (res.data.message || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("ORDER UPDATE ERROR:", err);
+
+      if (err.response) {
+        alert(
+          `Failed: ${
+            err.response.data.message || `Error ${err.response.status}`
+          }`
+        );
+      } else {
+        alert("Failed to update order.");
+      }
+    }
   };
 
   return (
-    <Container className="mt-5">
+    <Container className="my-5">
       <GalleryTable
-        title="Gallery Images"
+        title="GALLERY IMAGES"
         data={groupedImages}
         columns={[
           { header: "Category", accessor: "category" },
@@ -66,37 +187,18 @@ const GalleryImages = () => {
         ]}
         onCategoryClick={handleOpenModal}
         onDelete={handleDelete}
-        onEdit={handleEdit} // crucial — persist via context
+        onEdit={handleEdit}
       />
 
       <GalleryModal
         show={showModal}
         handleClose={() => setShowModal(false)}
         category={selectedCategory}
+        images={images}
+        onDeleteSuccess={fetchGallery} 
       />
     </Container>
   );
 };
 
 export default GalleryImages;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

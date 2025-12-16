@@ -1,26 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { useNews } from "../../context/NewsContext";
+import axios from "axios";
 
-const EditNewsVideoModal = ({ show, onClose, data }) => {
-  const { updateNewsVideo } = useNews();
+const EditNewsVideoModal = ({ show, onClose, data, onUpdated }) => {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const [formData, setFormData] = useState({
     id: "",
     order_id: "",
     title: "",
     date: "",
-    link: "",
+    youtube_link: "",
   });
 
   useEffect(() => {
     if (data) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
-        id: data.id,
+        id: data.lang_id,           
         order_id: data.order_id,
         title: data.title,
-        date: data.date,
-        link: data.link,
+        date: data.date?.slice(0, 10),
+        youtube_link: data.youtube_link,
       });
     }
   }, [data]);
@@ -32,19 +33,32 @@ const EditNewsVideoModal = ({ show, onClose, data }) => {
     });
   };
 
-  const handleSave = () => {
-    updateNewsVideo(formData);
-    onClose(); 
+  const handleSave = async () => {
+    try {
+      const res = await axios.put(`${BASE_URL}/admin/updateNewsVideo`, formData);
+
+      if (res.data.status === "success") {
+        alert("Video updated successfully!");
+        onUpdated();  
+        onClose();    
+      } else {
+        alert("Update failed");
+      }
+    } catch (error) {
+      console.error("UPDATE ERROR:", error);
+      alert("Error updating video");
+    }
   };
 
   return (
-    <Modal show={show} onHide={onClose} centered size="md">
+    <Modal show={show} onHide={onClose} centered size="lg" className="my-5">
       <Modal.Header closeButton>
         <Modal.Title>Edit News Video</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
         <Form>
+
           <Form.Group className="mb-3">
             <Form.Label>Order Id</Form.Label>
             <Form.Control
@@ -76,14 +90,15 @@ const EditNewsVideoModal = ({ show, onClose, data }) => {
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>YouTube Link (Embed Link)</Form.Label>
+            <Form.Label>YouTube Link</Form.Label>
             <Form.Control
               type="text"
-              name="link"
-              value={formData.link}
+              name="youtube_link"
+              value={formData.youtube_link}
               onChange={handleChange}
             />
           </Form.Group>
+
         </Form>
       </Modal.Body>
 

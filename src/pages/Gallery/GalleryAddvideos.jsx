@@ -1,33 +1,73 @@
 import React, { useState } from "react";
-import { Container, Card, Button, Form, Row, Col } from "react-bootstrap";
+import {
+  Container,
+  Card,
+  Button,
+  Form,
+  Row,
+  Col,
+  Spinner,
+} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { useGallery } from "../../context/GalleryContext";
+import axios from "axios";
 
 const GalleryAddvideos = () => {
   const navigate = useNavigate();
-  const { addVideo } = useGallery();
+
   const [videoPreview, setVideoPreview] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
+  const [loading, setLoading] = useState(false); // ✅ Added loading
 
   const [formData, setFormData] = useState({
-    category: "",
+    video_category: "",
     title: "",
     order_id: "",
-    url: "",
   });
 
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setVideoPreview(url);
-      setFormData({ ...formData, url });
-    }
+    if (!file) return;
+
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addVideo({ id: Date.now(), type: "video", ...formData });
-    navigate("/galleryvideos");
+
+    if (!videoFile) {
+      alert("Please upload a video file");
+      return;
+    }
+
+    setLoading(true); // ⬅️ Start loading
+
+    const fd = new FormData();
+    fd.append("video_category", formData.video_category);
+    fd.append("title", formData.title);
+    fd.append("order_id", formData.order_id);
+    fd.append("videos", videoFile);
+
+    try {
+      // eslint-disable-next-line no-unused-vars
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/addVideoGallery`,
+        fd,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      alert("Video uploaded successfully!");
+      navigate("/galleryvideos");
+    } catch (err) {
+      console.error("Upload Error:", err);
+      alert("Upload failed! Check console.");
+    } finally {
+      setLoading(false); 
+    }
   };
 
   return (
@@ -35,21 +75,38 @@ const GalleryAddvideos = () => {
       <Container className="my-5">
         <Card className="journey-card p-4 mt-4">
           <Card.Body>
-            <h5 className="text-center journey-title mb-4">Add Videos</h5>
+            <h5 className="text-center fw-bold mb-2">ADD VIDEOS</h5>
 
             <Form className="journey-form" onSubmit={handleSubmit}>
-              {/* Category + Title */}
               <Row>
                 <Col xs={12} md={6}>
                   <Form.Group className="mb-3">
                     <Form.Label>Category</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="Enter category"
+                    <Form.Select
+                      className="form-control form-select"
+                      disabled={loading}
                       onChange={(e) =>
-                        setFormData({ ...formData, category: e.target.value })
+                        setFormData({
+                          ...formData,
+                          video_category: e.target.value,
+                        })
                       }
-                    />
+                      required
+                    >
+                      <option value="">-- Select Video Category --</option>
+                      <option value="Project PoSSUM Acceleration ‘G’ profile">
+                        Project PoSSUM Acceleration ‘G’ profile
+                      </option>
+                      <option value="Project PoSSUM Intravehicular Spacesuit">
+                        Project PoSSUM Intravehicular Spacesuit
+                      </option>
+                      <option value="Mars Academy 3D Printing">
+                        Mars Academy 3D Printing
+                      </option>
+                      <option value="Rover/ATV in Mars Analog Mission">
+                        Rover/ATV in Mars Analog Mission
+                      </option>
+                    </Form.Select>
                   </Form.Group>
                 </Col>
 
@@ -59,6 +116,7 @@ const GalleryAddvideos = () => {
                     <Form.Control
                       type="text"
                       placeholder="Enter video title"
+                      disabled={loading}
                       onChange={(e) =>
                         setFormData({ ...formData, title: e.target.value })
                       }
@@ -68,22 +126,11 @@ const GalleryAddvideos = () => {
               </Row>
 
               <Form.Group className="mb-3">
-                <Form.Label>Order Id</Form.Label>
-                <Form.Control
-                  type="number"
-                  placeholder="Enter order id"
-                  onChange={(e) =>
-                    setFormData({ ...formData, order_id: e.target.value })
-                  }
-                />
-              </Form.Group>
-
-              {/* Upload */}
-              <Form.Group className="mb-3">
                 <Form.Label>Upload Video</Form.Label>
                 <Form.Control
                   type="file"
                   accept="video/*"
+                  disabled={loading}
                   onChange={handleVideoChange}
                 />
               </Form.Group>
@@ -99,11 +146,10 @@ const GalleryAddvideos = () => {
                 </div>
               )}
 
-              {/* Buttons */}
               <div className="text-center d-flex justify-content-center gap-3">
                 <Button
                   variant="secondary"
-                  className="journey-submit-btn"
+                  disabled={loading} 
                   onClick={() => {
                     document.querySelector(".journey-form").reset();
                     setVideoPreview(null);
@@ -112,12 +158,20 @@ const GalleryAddvideos = () => {
                   Reset
                 </Button>
 
-                <Button
-                  type="submit"
-                  className="journey-submit-btn"
-                  variant="primary"
-                >
-                  Submit
+                <Button type="submit" variant="primary" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        className="me-2"
+                      />
+                      Uploading...
+                    </>
+                  ) : (
+                    "Submit"
+                  )}
                 </Button>
               </div>
             </Form>

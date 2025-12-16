@@ -1,13 +1,11 @@
 .content-area {
-  padding-top: 80px !important;  /* creates space below fixed header */
+  padding-top: 80px !important;  
 }
 
-/* Content width and horizontal spacing are handled in Layout.jsx inline styles
-   to keep behavior consistent between desktop and mobile. */
+
 
 @media (max-width: 992px) {
   .content-area {
-    /* no left padding on mobile; sidebar overlays content */
     padding-left: 0;
   }
 }

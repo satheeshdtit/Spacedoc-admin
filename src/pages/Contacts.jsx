@@ -1,37 +1,49 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Container, Card, Table, Row, Col, Form } from "react-bootstrap";
 import { FiTrash2 } from "react-icons/fi";
 
 export default function Contacts() {
-  // STATIC CONTACT DATA (You can replace with API or context later)
-  const [contacts, setContacts] = useState([
-    {
-      id: 1,
-      name: "test",
-      email: "test@gmail.com",
-      phone: "9940894105",
-      message: "TEST",
-    },
-    {
-      id: 2,
-      name: "test2",
-      email: "test2@gmail.com",
-      phone: "8300129788",
-      message: "Hello!",
-    },
-  ]);
+  const BASE = import.meta.env.VITE_API_BASE_URL;
+  const API = `${BASE}${import.meta.env.VITE_API_CONTACT}`;
 
+  const [contacts, setContacts] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [goToPage, setGoToPage] = useState("");
 
-  // 🔍 FILTER CONTACTS
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
+    fetchContacts();
+  }, []);
+
+  const fetchContacts = async () => {
+    try {
+      const res = await axios.get(API);
+
+      if (res.data?.status === "success") {
+        const formatted = res.data.data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          email: item.email,
+          phone: item.phone,
+          message: item.message,
+          date: item.date.substring(0, 10),
+        }));
+
+        setContacts(formatted);
+      }
+    } catch (err) {
+      console.error("API Error:", err);
+      alert("Failed to load contacts");
+    }
+  };
+
   const filteredData = contacts.filter((item) =>
     Object.values(item).join(" ").toLowerCase().includes(search.toLowerCase())
   );
 
-  // 📄 PAGINATION CALC
   const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
   const indexOfLast = currentPage * rowsPerPage;
   const indexOfFirst = indexOfLast - rowsPerPage;
@@ -39,22 +51,49 @@ export default function Contacts() {
 
   const nextPage = () =>
     currentPage < totalPages && setCurrentPage(currentPage + 1);
-  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
 
-  // 🗑 DELETE CONTACT
-  const handleDelete = (row) => {
-    const ask = window.confirm("Are you sure you want to delete?");
-    if (!ask) return;
+  const prevPage = () =>
+    currentPage > 1 && setCurrentPage(currentPage - 1);
 
+ const handleDelete = async (row) => {
+  const ask = window.confirm("Are you sure you want to delete?");
+  if (!ask) return;
+
+  try {
+    const token = JSON.parse(localStorage.getItem("authUser"))?.token;
+
+    await axios.delete(
+      `${BASE}/admin/contact/${row.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // ✅ REMOVE FROM UI AFTER SUCCESS
     setContacts((prev) => prev.filter((c) => c.id !== row.id));
-  };
+
+    alert("Contact deleted successfully ✅");
+  } catch (err) {
+    console.error(
+      "DELETE CONTACT ERROR:",
+      err?.response?.data || err.message
+    );
+
+    alert(
+      err?.response?.data?.message ||
+        "Failed to delete contact ❌"
+    );
+  }
+};
+
 
   return (
     <Container className="my-5">
       <Card className="shadow-sm p-4">
         <h4 className="text-center fw-bold mb-4">CONTACTS</h4>
 
-        {/* Top Controls (Show entries + Search) */}
         <Row className="mb-3">
           <Col xs={6} md={3}>
             <Form.Select
@@ -83,7 +122,6 @@ export default function Contacts() {
           </Col>
         </Row>
 
-        {/* TABLE */}
         <div className="table-container">
           <Table className="simple-table">
             <thead>
@@ -127,7 +165,6 @@ export default function Contacts() {
           </Table>
         </div>
 
-        {/* Pagination */}
         <div className="custom-pagination-container mt-4">
           <div className="pagination-info">
             Showing {filteredData.length === 0 ? 0 : indexOfFirst + 1} to{" "}
@@ -137,7 +174,6 @@ export default function Contacts() {
 
           <div className="d-flex align-items-center gap-3 flex-wrap">
             <div className="custom-pagination">
-              {/* PREVIOUS ARROW */}
               <button
                 className="page-btn"
                 onClick={prevPage}
@@ -146,7 +182,6 @@ export default function Contacts() {
                 &laquo;
               </button>
 
-              {/* PAGE NUMBERS */}
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i}
@@ -159,7 +194,6 @@ export default function Contacts() {
                 </button>
               ))}
 
-              {/* NEXT ARROW */}
               <button
                 className="page-btn"
                 onClick={nextPage}

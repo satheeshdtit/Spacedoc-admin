@@ -1,14 +1,59 @@
+/* 
+   AUTH CARD
+*/
 .auth-card {
   width: 100%;
   max-width: 420px;
   border-radius: 15px;
 }
 
+/* 
+   LOGO – PURE IMAGE (NO CIRCLE)
+*/
 .auth-logo {
-  width: 120px;
+  width: 150px;         
   height: auto;
+
+  display: block;
+  margin: 0 auto 16px;   
+
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
+/* If Bootstrap rounded-circle is applied */
+.auth-logo.rounded-circle {
+  border-radius: 0 !important;
+}
+
+/* If wrapped inside any container */
+.auth-logo img {
+  border-radius: 0 !important;
+  background: none !important;
+}
+
+/*
+   PLACEHOLDER
+*/
 input::placeholder {
   font-size: 14px;
+  color: #94a3b8;
+}
+
+/* 
+   AUTH LOGO – FORCE CLEAN IMAGE
+ */
+.text-center img {
+  display: inline-block;
+
+  height: 70px;      
+  width: auto;
+
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
 }

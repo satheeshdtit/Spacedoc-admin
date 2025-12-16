@@ -1,38 +1,167 @@
+/* 
+   APP HEADER – PREMIUM LIGHT BAR
+ */
 .app-header {
   position: fixed !important;
   top: 0;
   left: 0;
   width: 100%;
   height: 65px;
-  z-index: 3000; /* stay above sidebar */
-  background: #fff !important;
+  z-index: 3000;
+
+  /* Force override Bootstrap dark */
+  background: #ffffff !important;
+
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+
+  display: flex;
+  align-items: center;
 }
 
+/* 
+   REMOVE BOOTSTRAP DARK COLORS
+ */
+.app-header.navbar-dark {
+  background: #ffffff !important;
+}
+
+.app-header .navbar-brand,
+.app-header .nav-link,
+.app-header button {
+  color: #020617 !important;
+}
+
+/* 
+   MENU BUTTON – STANDALONE CONTROL
+ */
+.menu-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+
+  background: #f1f5f9 !important;
+  border: 1px solid #e5e7eb !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.menu-btn svg {
+  color: #020617;
+}
+
+.menu-btn:hover {
+  background: #e0e7ff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(59, 130, 246, 0.25);
+}
+
+/* 
+   LOGO – EMPHASIZED
+ */
 .header-logo {
   height: 38px;
-  width: auto;
+  padding: 4px 6px;
+
+  border-radius: 8px;
+  background: #f8fafc;
+
+  box-shadow: inset 0 0 0 1px #e5e7eb;
+
+  transition: transform 0.2s ease;
 }
 
-
-.brand-text {
-  font-size: 18px;
-  font-weight: 600;
+.header-logo:hover {
+  transform: scale(1.06);
 }
 
+/*
+   PROFILE IMAGE – PREMIUM
+ */
+.profile-wrapper img,
 .profile-img {
-  width: 34px;
-  height: 34px;
+  width: 40px !important;
+  height: 40px !important;
+  object-fit: cover;
+
   border-radius: 50%;
+  border: 2px solid #ffffff;
+
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, 0.25);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.search-container {
-  max-width: 300px;
-  width: 100%;
+.profile-wrapper img:hover,
+.profile-img:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 12px 26px rgba(15, 23, 42, 0.35);
 }
 
-/* MOBILE */
+/* 
+   DROPDOWN MENU – PRODUCT GRADE
+*/
+.dropdown-menu {
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  min-width: 160px;
+
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.18);
+}
+
+.dropdown-item {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: #f1f5f9;
+  transform: translateX(2px);
+}
+
+/*
+   CONTAINER SPACING
+ */
+.app-header .container-fluid {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* 
+   MOBILE POLISH
+*/
 @media (max-width: 576px) {
+  .menu-btn {
+    width: 38px;
+    height: 38px;
+  }
+
   .header-logo {
     height: 32px;
+  }
+
+  .profile-wrapper img {
+    width: 36px !important;
+    height: 36px !important;
   }
 }

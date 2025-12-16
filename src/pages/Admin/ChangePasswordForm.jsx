@@ -1,7 +1,12 @@
 import React, { useState } from "react";
-import { Form, Button } from "react-bootstrap";
+import { Form, Button, Spinner, InputGroup } from "react-bootstrap";
+import axios from "axios";
+import { FiEye, FiEyeOff } from "react-icons/fi"; 
 
-export default function ChangePasswordForm({ onCancel }) {
+export default function ChangePasswordForm({ onCancel, adminId }) {
+  const BASE = import.meta.env.VITE_API_BASE_URL;
+  const token = JSON.parse(localStorage.getItem("authUser"))?.token;
+
   const [form, setForm] = useState({
     oldPassword: "",
     newPassword: "",
@@ -9,16 +14,22 @@ export default function ChangePasswordForm({ onCancel }) {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" }); // clear error
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const validate = () => {
     const newErrors = {};
 
-    if (!form.oldPassword) newErrors.oldPassword = "Old password is required.";
+    if (!form.oldPassword)
+      newErrors.oldPassword = "Old password is required.";
 
     if (!form.newPassword)
       newErrors.newPassword = "New password is required.";
@@ -31,16 +42,56 @@ export default function ChangePasswordForm({ onCancel }) {
       newErrors.confirmPassword = "Passwords do not match.";
 
     setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0; // No errors
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
 
-    alert("Password Changed Successfully!");
+    if (!adminId) {
+      alert("Admin not loaded. Please refresh.");
+      return;
+    }
 
-    onCancel();
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("id", adminId);
+      formData.append("old_password", form.oldPassword);
+      formData.append("new_password", form.newPassword);
+
+      const res = await axios.post(
+        `${BASE}/admin/changePassword`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert(res.data?.message || "Password changed successfully ✅");
+
+      setForm({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      onCancel();
+    } catch (err) {
+      console.error(
+        "CHANGE PASSWORD ERROR:",
+        err?.response?.data || err.message
+      );
+
+      alert(
+        err?.response?.data?.message || "Failed to change password"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,55 +101,77 @@ export default function ChangePasswordForm({ onCancel }) {
       <Form>
         <Form.Group className="mb-3">
           <Form.Label>Old Password*</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Enter Old Password"
-            name="oldPassword"
-            value={form.oldPassword}
-            onChange={handleChange}
-            isInvalid={!!errors.oldPassword}
-          />
-          <Form.Control.Feedback type="invalid">
-            {errors.oldPassword}
-          </Form.Control.Feedback>
+          <InputGroup>
+            <Form.Control
+              type={showOld ? "text" : "password"}
+              name="oldPassword"
+              value={form.oldPassword}
+              onChange={handleChange}
+              isInvalid={!!errors.oldPassword}
+            />
+            <InputGroup.Text
+              style={{ cursor: "pointer" }}
+              onClick={() => setShowOld(!showOld)}
+            >
+              {showOld ? <FiEyeOff /> : <FiEye />}
+            </InputGroup.Text>
+            <Form.Control.Feedback type="invalid">
+              {errors.oldPassword}
+            </Form.Control.Feedback>
+          </InputGroup>
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>New Password*</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Enter New Password"
-            name="newPassword"
-            value={form.newPassword}
-            onChange={handleChange}
-            isInvalid={!!errors.newPassword}
-          />
-          <Form.Control.Feedback type="invalid">
-            {errors.newPassword}
-          </Form.Control.Feedback>
+          <InputGroup>
+            <Form.Control
+              type={showNew ? "text" : "password"}
+              name="newPassword"
+              value={form.newPassword}
+              onChange={handleChange}
+              isInvalid={!!errors.newPassword}
+            />
+            <InputGroup.Text
+              style={{ cursor: "pointer" }}
+              onClick={() => setShowNew(!showNew)}
+            >
+              {showNew ? <FiEyeOff /> : <FiEye />}
+            </InputGroup.Text>
+            <Form.Control.Feedback type="invalid">
+              {errors.newPassword}
+            </Form.Control.Feedback>
+          </InputGroup>
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Re-enter New Password*</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Re-enter New Password"
-            name="confirmPassword"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            isInvalid={!!errors.confirmPassword}
-          />
-          <Form.Control.Feedback type="invalid">
-            {errors.confirmPassword}
-          </Form.Control.Feedback>
+          <InputGroup>
+            <Form.Control
+              type={showConfirm ? "text" : "password"}
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              isInvalid={!!errors.confirmPassword}
+            />
+            <InputGroup.Text
+              style={{ cursor: "pointer" }}
+              onClick={() => setShowConfirm(!showConfirm)}
+            >
+              {showConfirm ? <FiEyeOff /> : <FiEye />}
+            </InputGroup.Text>
+            <Form.Control.Feedback type="invalid">
+              {errors.confirmPassword}
+            </Form.Control.Feedback>
+          </InputGroup>
         </Form.Group>
 
         <div className="d-flex justify-content-end gap-2">
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel} disabled={loading}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSubmit}>
-            Submit
+
+          <Button variant="primary" onClick={handleSubmit} disabled={loading}>
+            {loading ? <Spinner size="sm" /> : "Submit"}
           </Button>
         </div>
       </Form>

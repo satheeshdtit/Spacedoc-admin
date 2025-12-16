@@ -1,73 +1,93 @@
-import { createContext, useContext, useEffect, useState } from "react";
+// import { createContext, useContext, useEffect, useState } from "react";
+// import axios from "axios";
 
-const NewsContext = createContext();
-// eslint-disable-next-line react-refresh/only-export-components
-export const useNews = () => useContext(NewsContext);
+// const NewsContext = createContext();
 
-export const NewsProvider = ({ children }) => {
-  // ---------------- NORMAL NEWS ----------------
-  const [news, setNews] = useState(() => {
-    return JSON.parse(localStorage.getItem("newsData")) || [];
-  });
+// // eslint-disable-next-line react-refresh/only-export-components
+// export const useNews = () => useContext(NewsContext);
 
-  useEffect(() => {
-    localStorage.setItem("newsData", JSON.stringify(news));
-  }, [news]);
+// export const NewsProvider = ({ children }) => {
+//   // const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+//   const BASE = import.meta.env.VITE_API_BASE_URL;
+//   const API = `${BASE}${import.meta.env.VITE_API_NEWS}`;
+//   const [news, setNews] = useState([]);
 
-  const addNews = (item) => {
-    setNews((prev) => [...prev, { ...item, id: Date.now() }]);
-  };
+//   // Get all news
+//   const getAllNews = async () => {
+//     try {
+//       const res = await axios.get(API);
+//       setNews(res.data.news || []);
+//     } catch (error) {
+//       console.error("GET NEWS ERROR:", error);
+//     }
+//   };
 
-  const deleteNews = (id) => {
-    setNews((prev) => prev.filter((n) => n.id !== id));
-  };
+//   // Add news
+//   const addNews = async (formData) => {
+//     try {
+//       await axios.post(API,formData)
+//       alert("News added successfully!");
+//       getAllNews();
+//     } catch (error) {
+//       console.error("ADD NEWS ERROR:", error);
+//       alert("Failed to add news");
+//     }
+//   };
 
-  const updateNews = (updatedItem) => {
-    setNews((prev) =>
-      prev.map((n) => (n.id === updatedItem.id ? updatedItem : n))
-    );
-  };
+//   // // Delete news (API to be added later)
+//   // const deleteNews = async (id) => {
+//   //   alert("Delete API integration will be added later.");
+//   // };
 
-  // ---------------- NEWS VIDEOS ----------------
-  const [newsVideos, setNewsVideos] = useState(() => {
-    return JSON.parse(localStorage.getItem("newsVideosData")) || [];
-  });
+//   // // Update news (API to be added later)
+//   // const updateNews = async (item) => {
+//   //   alert("Update API integration will be added later.");
+//   // };
 
-  useEffect(() => {
-    localStorage.setItem("newsVideosData", JSON.stringify(newsVideos));
-  }, [newsVideos]);
+//   useEffect(() => {
+//     // eslint-disable-next-line react-hooks/set-state-in-effect
+//     getAllNews();
+//   }, []);
 
-  const addNewsVideo = (video) => {
-    setNewsVideos((prev) => [...prev, { ...video, id: Date.now() }]);
-  };
 
-  const deleteNewsVideo = (id) => {
-    setNewsVideos((prev) => prev.filter((v) => v.id !== id));
-  };
+//   const [newsVideos, setNewsVideos] = useState(() => {
+//     return JSON.parse(localStorage.getItem("newsVideosData")) || [];
+//   });
 
-  const updateNewsVideo = (updatedVideo) => {
-    setNewsVideos((prev) =>
-      prev.map((v) => (v.id === updatedVideo.id ? updatedVideo : v))
-    );
-  };
+//   useEffect(() => {
+//     localStorage.setItem("newsVideosData", JSON.stringify(newsVideos));
+//   }, [newsVideos]);
 
-  return (
-    <NewsContext.Provider
-      value={{
-        // normal news
-        news,
-        addNews,
-        deleteNews,
-        updateNews,
+//   const addNewsVideo = (video) => {
+//     setNewsVideos((prev) => [...prev, { ...video, id: Date.now() }]);
+//   };
 
-        // news videos
-        newsVideos,
-        addNewsVideo,
-        deleteNewsVideo,
-        updateNewsVideo,
-      }}
-    >
-      {children}
-    </NewsContext.Provider>
-  );
-};
+//   const deleteNewsVideo = (id) => {
+//     setNewsVideos((prev) => prev.filter((v) => v.id !== id));
+//   };
+
+//   const updateNewsVideo = (updatedVideo) => {
+//     setNewsVideos((prev) =>
+//       prev.map((v) => (v.id === updatedVideo.id ? updatedVideo : v))
+//     );
+//   };
+
+//   return (
+//     <NewsContext.Provider
+//       value={{
+//         news,
+//         addNews,
+//         // deleteNews,
+//         // updateNews,
+//         getAllNews,
+
+//         newsVideos,
+//         addNewsVideo,
+//         deleteNewsVideo,
+//         updateNewsVideo,
+//       }}
+//     >
+//       {children}
+//     </NewsContext.Provider>
+//   );
+// };

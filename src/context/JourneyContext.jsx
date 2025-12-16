@@ -1,35 +1,71 @@
 import React, { createContext, useState, useEffect } from "react";
+import {
+  getAllJourneys,
+  updateJourneyById,
+  deleteJourneyById,
+  addJourneyAPI,
+} from "../services/journeyService";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const JourneyContext = createContext();
 
 export const JourneyProvider = ({ children }) => {
-  //  Load from localStorage initially
-  const [journeys, setJourneys] = useState(() => {
-    const stored = localStorage.getItem("journeyData");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [journeys, setJourneys] = useState([]);
 
-  // Save to localStorage whenever journeys update
+  const fetchJourneys = async () => {
+    try {
+      const data = await getAllJourneys();
+
+      const processed = data.journeys.flatMap((j) =>
+        Object.entries(j.languages).map(([lang, langData]) => ({
+          id: langData.id,          
+          order_id: j.order_id,
+          language: lang,
+          title: langData.title,
+          date: langData.date?.slice(0, 10),
+          description: langData.description,
+          link: langData.link,
+          images: langData.images,
+        }))
+      );
+
+      setJourneys(processed);
+    } catch (error) {
+      console.error("Fetch journey failed", error);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem("journeyData", JSON.stringify(journeys));
-  }, [journeys]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchJourneys();
+  }, []);
 
-  // ADD
-  const addJourney = (data) => {
-    setJourneys((prev) => [...prev, { id: Date.now(), ...data }]);
+  const addJourney = async (formData) => {
+    try {
+      await addJourneyAPI(formData);
+      fetchJourneys();
+    } catch (error) {
+      console.error("Add Journey failed", error);
+    }
   };
 
-  // EDIT
-  const updateJourney = (id, updatedData) => {
-    setJourneys((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updatedData } : item))
-    );
+  const updateJourney = async (formData) => {
+    try {
+      const res = await updateJourneyById(formData);
+      return res?.data?.message ? true : false;
+    } catch (error) {
+      console.log("BACKEND ERROR:", error.response?.data);
+      return false;
+    }
   };
 
-  // DELETE
-  const deleteJourney = (id) => {
-    setJourneys((prev) => prev.filter((item) => item.id !== id));
+  const deleteJourney = async (id) => {
+    try {
+      await deleteJourneyById(id);
+      fetchJourneys();
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
   };
 
   return (
@@ -39,6 +75,7 @@ export const JourneyProvider = ({ children }) => {
         addJourney,
         updateJourney,
         deleteJourney,
+        refresh: fetchJourneys,
       }}
     >
       {children}

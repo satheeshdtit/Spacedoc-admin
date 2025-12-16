@@ -1,35 +1,59 @@
 import React, { useState } from "react";
-import { Form, Button, Card, Container } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Form, Button, Card, Container, Spinner } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
 import main_logo from "../../assets/Images/main_logo.png";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SignUp() {
-  const [form, setForm] = useState({ name: "", email: "", cryptId: "" });
-  const [errors, setErrors] = useState({});
+  const { signup } = useAuth();
+  const navigate = useNavigate();
 
+  const [form, setForm] = useState({
+    adminname: "",
+    email: "",
+    crypt_id: "",
+  });
+
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Handle Input Change
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // ✅ Validation
   const validate = () => {
     let newErrors = {};
 
-    if (!form.name) newErrors.name = "Name is required";
+    if (!form.adminname) newErrors.adminname = "Admin name is required";
     if (!form.email) newErrors.email = "Email is required";
-    if (!form.cryptId) newErrors.cryptId = "Crypt ID is required";
+    if (!form.crypt_id) newErrors.crypt_id = "Crypt ID is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  // ✅ Submit Handler with API
+  const handleSubmit = async () => {
     if (!validate()) return;
-    alert("Account Created Successfully!");
+
+    try {
+      setLoading(true);
+      await signup(form.adminname, form.email, form.crypt_id);
+      alert("Account Created Successfully!");
+      navigate("/signin");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Container className="d-flex justify-content-center align-items-center min-vh-100">
-      <Card className="p-4 shadow-lg auth-card">
+      <Card className="p-4 shadow-lg auth-card" style={{ width: "100%", maxWidth: "420px" }}>
+        
         <div className="text-center mb-3">
           <img src={main_logo} alt="Logo" className="auth-logo" />
         </div>
@@ -37,23 +61,23 @@ export default function SignUp() {
         <h3 className="text-center mb-3 fw-bold">Sign Up</h3>
 
         <Form>
-          {/* NAME */}
+          {/* ✅ ADMIN NAME */}
           <Form.Group className="mb-3">
-            <Form.Label>Name*</Form.Label>
+            <Form.Label>Admin Name*</Form.Label>
             <Form.Control
               type="text"
-              name="name"
-              placeholder="Enter your name"
-              value={form.name}
+              name="adminname"
+              placeholder="Enter admin name"
+              value={form.adminname}
               onChange={handleChange}
-              isInvalid={!!errors.name}
+              isInvalid={!!errors.adminname}
             />
             <Form.Control.Feedback type="invalid">
-              {errors.name}
+              {errors.adminname}
             </Form.Control.Feedback>
           </Form.Group>
 
-          {/* EMAIL */}
+          {/* ✅ EMAIL */}
           <Form.Group className="mb-3">
             <Form.Label>Email*</Form.Label>
             <Form.Control
@@ -69,24 +93,30 @@ export default function SignUp() {
             </Form.Control.Feedback>
           </Form.Group>
 
-          {/* CRYPT ID */}
+          {/* ✅ CRYPT ID */}
           <Form.Group className="mb-3">
             <Form.Label>Crypt ID*</Form.Label>
             <Form.Control
               type="text"
-              name="cryptId"
+              name="crypt_id"
               placeholder="Enter Crypt ID"
-              value={form.cryptId}
+              value={form.crypt_id}
               onChange={handleChange}
-              isInvalid={!!errors.cryptId}
+              isInvalid={!!errors.crypt_id}
             />
             <Form.Control.Feedback type="invalid">
-              {errors.cryptId}
+              {errors.crypt_id}
             </Form.Control.Feedback>
           </Form.Group>
 
-          <Button variant="primary" className="w-100 mt-2" onClick={handleSubmit}>
-            Sign Up
+          {/* ✅ SUBMIT BUTTON */}
+          <Button
+            variant="primary"
+            className="w-100 mt-2"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? <Spinner size="sm" /> : "Sign Up"}
           </Button>
 
           <p className="text-center mt-3">

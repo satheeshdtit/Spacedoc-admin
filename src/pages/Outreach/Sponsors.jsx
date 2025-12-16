@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Container,
   Card,
@@ -12,57 +13,91 @@ import {
 import { FiMaximize2, FiTrash2 } from "react-icons/fi";
 
 export default function Sponsors() {
-  // STATIC DATA
-  const staticData = [
-    {
-      id: 1,
-      name: "test",
-      email: "test@gmail.com",
-      phone: "9940847108",
-      organizationName: "Madras University",
-    },
-    {
-      id: 2,
-      name: "test 2",
-      email: "tst@gmail.com",
-      phone: "9940847701",
-      organizationName: "Anna University",
-    },
-  ];
+  // API URL
+const BASE = import.meta.env.VITE_API_BASE_URL;
+const API = `${BASE}/admin/sponsor`;
 
-  // Columns for dynamic table
-  const columns = [
-    { header: "Name", accessor: "name" },
-    { header: "Email", accessor: "email" },
-    { header: "Phone", accessor: "phone" },
-    { header: "Organization Name", accessor: "organizationName" },
-  ];
 
-  // States
-  const [data, setData] = useState(staticData);
+  const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [goToPage, setGoToPage] = useState("");
 
-  // View Modal State
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
+    fetchSponsors();
+  }, []);
+
+ const fetchSponsors = async () => {
+  try {
+    const token = JSON.parse(localStorage.getItem("authUser"))?.token;
+
+    const res = await axios.get(API, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (res.data?.status === "success") {
+      const formatted = res.data.data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        email: item.email,
+        phone: item.phone,
+        organizationName: item.org_name,
+        fullData: item,
+      }));
+
+      setData(formatted);
+    }
+  } catch (err) {
+    console.error("Sponsor API Error:", err?.message);
+    alert("Backend server is not reachable ❌");
+  }
+};
+
+
   const handleView = (row) => {
-    setSelectedRow(row);
+    setSelectedRow(row.fullData);
     setShowViewModal(true);
+    window.dispatchEvent(new Event("modal-open"));
   };
 
-  // FILTER
+const handleDelete = async (row) => {
+  const ok = window.confirm("Are you sure you want to delete this sponsor?");
+  if (!ok) return;
+
+  try {
+    const token = JSON.parse(localStorage.getItem("authUser"))?.token;
+
+    await axios.delete(
+      `${BASE}/admin/sponsor/${row.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setData((prev) => prev.filter((item) => item.id !== row.id));
+
+    alert("Sponsor deleted successfully ✅");
+  } catch (err) {
+    console.error("DELETE SPONSOR ERROR:", err?.message);
+    alert("Backend server is not reachable ❌");
+  }
+};
+    
+
+
   const filteredData = data.filter((item) =>
-    Object.values(item)
-      .join(" ")
-      .toLowerCase()
-      .includes(search.toLowerCase())
+    Object.values(item).join(" ").toLowerCase().includes(search.toLowerCase())
   );
 
-  // PAGINATION
   const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -70,8 +105,8 @@ export default function Sponsors() {
 
   const nextPage = () =>
     currentPage < totalPages && setCurrentPage(currentPage + 1);
-  const prevPage = () =>
-    currentPage > 1 && setCurrentPage(currentPage - 1);
+
+  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
 
   const getPageNumbers = () => {
     if (totalPages <= 3) return [...Array(totalPages)].map((_, i) => i + 1);
@@ -81,17 +116,11 @@ export default function Sponsors() {
     return [1, "...", currentPage, "...", totalPages];
   };
 
-  // DELETE ROW
-  const handleDelete = (row) => {
-    setData(data.filter((item) => item.id !== row.id));
-  };
-
   return (
     <Container className="my-5">
       <Card className="shadow-sm p-4 mt-4">
         <h4 className="text-center fw-bold mb-4">REQUEST FOR SPONSORS</h4>
 
-        {/* Row count + Search */}
         <Row className="mb-3">
           <Col xs={6} md={3}>
             <Form.Select
@@ -120,17 +149,15 @@ export default function Sponsors() {
           </Col>
         </Row>
 
-        {/* TABLE */}
         <div className="table-container">
           <Table className="simple-table">
             <thead>
               <tr>
                 <th>S.No</th>
-
-                {columns.map((col, index) => (
-                  <th key={index}>{col.header}</th>
-                ))}
-
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Organization Name</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -140,12 +167,12 @@ export default function Sponsors() {
                 <tr key={row.id}>
                   <td>{indexOfFirstRow + idx + 1}</td>
 
-                  {columns.map((col, cIdx) => (
-                    <td key={cIdx}>{row[col.accessor]}</td>
-                  ))}
+                  <td>{row.name}</td>
+                  <td>{row.email}</td>
+                  <td>{row.phone}</td>
+                  <td>{row.organizationName}</td>
 
                   <td className="d-flex gap-2">
-                    {/* VIEW BUTTON */}
                     <button
                       className="edit-icon-btn"
                       onClick={() => handleView(row)}
@@ -153,7 +180,6 @@ export default function Sponsors() {
                       <FiMaximize2 size={16} />
                     </button>
 
-                    {/* DELETE BUTTON */}
                     <button
                       className="delete-icon-btn"
                       onClick={() => handleDelete(row)}
@@ -166,7 +192,7 @@ export default function Sponsors() {
 
               {currentRows.length === 0 && (
                 <tr>
-                  <td colSpan={columns.length + 2} className="text-center py-3">
+                  <td colSpan={6} className="text-center py-3">
                     No records found.
                   </td>
                 </tr>
@@ -175,11 +201,9 @@ export default function Sponsors() {
           </Table>
         </div>
 
-        {/* PAGINATION */}
         <div className="custom-pagination-container mt-4">
           <div className="pagination-info">
-            Showing{" "}
-            {filteredData.length === 0 ? 0 : indexOfFirstRow + 1} to{" "}
+            Showing {filteredData.length === 0 ? 0 : indexOfFirstRow + 1} to{" "}
             {Math.min(indexOfLastRow, filteredData.length)} of{" "}
             {filteredData.length} entries
           </div>
@@ -197,9 +221,7 @@ export default function Sponsors() {
               {getPageNumbers().map((p, i) => (
                 <button
                   key={i}
-                  className={`page-number ${
-                    p === currentPage ? "active" : ""
-                  }`}
+                  className={`page-number ${p === currentPage ? "active" : ""}`}
                   onClick={() =>
                     p !== "..." && typeof p === "number"
                       ? setCurrentPage(p)
@@ -220,7 +242,6 @@ export default function Sponsors() {
               </button>
             </div>
 
-            {/* GO TO PAGE */}
             <div className="go-to-page d-flex align-items-center gap-2">
               <input
                 type="number"
@@ -247,27 +268,41 @@ export default function Sponsors() {
           </div>
         </div>
 
-        {/* VIEW MODAL */}
         <Modal
           show={showViewModal}
           onHide={() => setShowViewModal(false)}
           centered
         >
           <Modal.Header closeButton>
-            <Modal.Title>Details</Modal.Title>
+            <Modal.Title>Sponsor Details</Modal.Title>
           </Modal.Header>
 
           <Modal.Body>
             {selectedRow && (
-              <div>
-                <p><strong>Name:</strong> {selectedRow.name}</p>
-                <p><strong>Email:</strong> {selectedRow.email}</p>
-                <p><strong>Phone:</strong> {selectedRow.phone}</p>
+              <>
                 <p>
-                  <strong>Organization:</strong>{" "}
-                  {selectedRow.organizationName}
+                  <strong>Name:</strong> {selectedRow.name}
                 </p>
-              </div>
+                <p>
+                  <strong>Email:</strong> {selectedRow.email}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {selectedRow.phone}
+                </p>
+                <p>
+                  <strong>Organization:</strong> {selectedRow.org_name}
+                </p>
+                <p>
+                  <strong>Sponsor:</strong> {selectedRow.sponsor}
+                </p>
+                <p>
+                  <strong>Message:</strong> {selectedRow.message}
+                </p>
+                <p>
+                  <strong>Date:</strong>{" "}
+                  {new Date(selectedRow.date).toLocaleString()}
+                </p>
+              </>
             )}
           </Modal.Body>
 

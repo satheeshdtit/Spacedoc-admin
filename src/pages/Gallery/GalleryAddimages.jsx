@@ -1,33 +1,62 @@
 import React, { useState } from "react";
-import { Container, Card, Button, Form } from "react-bootstrap";
+import { Container, Card, Button, Form, Spinner } from "react-bootstrap";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useGallery } from "../../context/GalleryContext";
 
-const GalleryAddimages = () => {
+const GalleryAddImages = () => {
   const navigate = useNavigate();
-  const { addImage } = useGallery();
+
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false); 
 
   const [formData, setFormData] = useState({
     category: "",
     title: "",
     order_id: "",
-    url: ""
   });
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+
     if (file) {
-      const url = URL.createObjectURL(file);
-      setImagePreview(url);
-      setFormData({ ...formData, url });
+      setImagePreview(URL.createObjectURL(file));
+      setImageFile(file);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addImage({ id: Date.now(), ...formData });
-    navigate("/gallery");
+
+    if (!imageFile) {
+      alert("Please upload an image");
+      return;
+    }
+
+    setLoading(true); 
+
+    const fd = new FormData();
+    fd.append("image_category", formData.category);
+    fd.append("title", formData.title);
+    fd.append("order_id", formData.order_id);
+    fd.append("gallery_image", imageFile);
+
+    try {
+      const res = await axios.post(
+        import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_API_ADD_GALLERY,
+        fd,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      alert(res.data.message || "Image uploaded successfully");
+      navigate("/gallery");
+
+    } catch (error) {
+      console.error("Upload Error:", error);
+      alert(error.response?.data?.message || "Upload failed");
+    } finally {
+      setLoading(false); 
+    }
   };
 
   return (
@@ -35,52 +64,56 @@ const GalleryAddimages = () => {
       <Container className="my-5">
         <Card className="journey-card p-4 mt-4">
           <Card.Body>
-            <h5 className="text-center journey-title mb-4">Add Images</h5>
+            <h5 className="text-center fw-bold mb-2">ADD IMAGES</h5>
 
-            <Form className="journey-form" onSubmit={handleSubmit}>
-             <Form.Group className="mb-3">
-  <Form.Label>Category</Form.Label>
-  <Form.Control
-    type="text"
-    placeholder="Enter category"
-    onChange={(e) =>
-      setFormData({ ...formData, category: e.target.value })
-    }
-  />
-</Form.Group>
+            <Form onSubmit={handleSubmit}>
+              {/* CATEGORY */}
+              <Form.Group className="mb-3">
+                <Form.Label>Category</Form.Label>
+                <Form.Select
+                  disabled={loading}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
+                >
+                  <option value="">Select Category</option>
+                  <option value="NASA Johnson Space Center">NASA Johnson Space Center</option>
+                  <option value="Project PoSSUM">Project PoSSUM</option>
+                  <option value="MDRS">MDRS</option>
+                  <option value="Mars Academy USA">Mars Academy USA</option>
+                  <option value="ISU">ISU</option>
+                  <option value="Project SIRIUS">Project SIRIUS</option>
+                  <option value="Austrian Space Forum">Austrian Space Forum</option>
+                  <option value="Conferences">Conferences</option>
+                  <option value="Others">Others</option>
+                </Form.Select>
+              </Form.Group>
 
-
+              {/* TITLE */}
               <Form.Group className="mb-3">
                 <Form.Label>Title</Form.Label>
                 <Form.Control
                   type="text"
                   placeholder="Enter title"
+                  disabled={loading}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
                 />
               </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Order Id</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter order id"
-                  onChange={(e) =>
-                    setFormData({ ...formData, order_id: e.target.value })
-                  }
-                />
-              </Form.Group>
-
+              {/* IMAGE UPLOAD */}
               <Form.Group className="mb-3">
                 <Form.Label>Upload Image</Form.Label>
                 <Form.Control
                   type="file"
                   accept="image/*"
+                  disabled={loading}
                   onChange={handleImageChange}
                 />
               </Form.Group>
 
+              {/* IMAGE PREVIEW */}
               {imagePreview && (
                 <div className="image-preview mb-3 text-center">
                   <img
@@ -92,22 +125,38 @@ const GalleryAddimages = () => {
                 </div>
               )}
 
+              {/* BUTTONS */}
               <div className="text-center d-flex justify-content-center gap-3">
                 <Button
                   variant="secondary"
-                  className="journey-submit-btn"
+                  disabled={loading}
                   onClick={() => {
-                    document.querySelector(".journey-form").reset();
+                    document.querySelector("form").reset();
                     setImagePreview(null);
+                    setImageFile(null);
+                    setFormData({ category: "", title: "", order_id: "" });
                   }}
                 >
                   Reset
                 </Button>
 
-                <Button type="submit" className="journey-submit-btn" variant="primary">
-                  Submit
+                <Button type="submit"  variant="primary" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        className="me-2"
+                      />
+                      Uploading...
+                    </>
+                  ) : (
+                    "Submit"
+                  )}
                 </Button>
               </div>
+
             </Form>
           </Card.Body>
         </Card>
@@ -116,4 +165,4 @@ const GalleryAddimages = () => {
   );
 };
 
-export default GalleryAddimages;
+export default GalleryAddImages;

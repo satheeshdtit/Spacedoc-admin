@@ -53,7 +53,6 @@ export default function Sidebar({ isOpen, onBackdropClick }) {
     <>
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
 
-        {/* ⭐ Make sidebar scrollable */}
         <nav className="sidebar-nav" style={{ overflowY: "auto", maxHeight: "100vh" }}>
 
           <NavLink className={activeMain} to="/dashboard">

@@ -1,62 +1,137 @@
-/* WRAPPER CLASS TO AVOID SIDEBAR / LAYOUT OVERRIDE */
-.admin-page-container {
-  max-width: 900px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+/*1) ADMIN PAGE CONTAINER
+************************************/
+/*
+    2) PROFILE CARD & CONTENT
+*/
+/* 
+   ADMIN PROFILE CARD
+ */
+.card {
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  box-shadow:
+    0 12px 30px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-/* TITLE */
-.admin-page-container .breadcrumb-title {
-  font-size: 20px;
-  font-weight: 600;
+/*
+   TITLE
+ */
+.card h5 {
+  letter-spacing: 0.6px;
+  font-size: 1.8rem;
+  color: #0f172a;
 }
 
-.admin-page-container .breadcrumb-path {
-  color: #6c757d;
-  font-size: 14px;
-  margin-top: -5px;
-}
+/* 
+   PROFILE IMAGE WRAPPER
+ */
+.profile-upload-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.55);
+  color: #ffffff;
 
-/* CARD */
-.admin-page-container .profile-card {
-  border-radius: 10px;
-  background: #fff;
-}
-
-/* CARD TITLE */
-.admin-page-container .profile-title {
-  font-weight: 600;
-}
-
-/* AVATAR IMAGE */
-.admin-page-container .profile-avatar {
-  width: 160px !important;
-  height: 160px !important;
-  object-fit: contain !important;
-}
-
-/* PROFILE ROWS */
-.admin-page-container .profile-row {
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.admin-page-container .label {
-  font-weight: 600;
-}
-
-/* BUTTON ROW */
-.admin-page-container .button-row {
   display: flex;
-  gap: 15px;
-  margin-top: 20px;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
+/* Show edit icon on hover */
+.position-relative:hover .profile-upload-overlay {
+  opacity: 1;
+}
 
+/* 
+   PROFILE IMAGE STYLING
+ */
+.card img {
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.25);
+  transition: transform 0.25s ease;
+}
 
+.position-relative:hover img {
+  transform: scale(1.03);
+}
 
+/* 
+   PROFILE INFO ROWS
+ */
+.card .row.py-1 {
+  padding: 10px 0;
+  border-bottom: 1px dashed #e5e7eb;
+  align-items: center;
+}
 
-/* MAIN PAGINATION WRAPPER */
+/* Remove last divider */
+.card .row.py-1:last-of-type {
+  border-bottom: none;
+}
+
+/* Labels */
+.card .fw-bold {
+  color: #475569;
+  /* font-size: 0.9rem; */
+}
+
+/* Values */
+.card .row.py-1 > .col-7,
+.card .row.py-1 > .col-7 * {
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+/* ===============================
+   BUTTON GROUP
+================================ */
+.card .btn {
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Hover */
+.card .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
+}
+
+/* ===============================
+   LOADING STATE
+================================ */
+.card .spinner-border {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+/* ===============================
+   RESPONSIVE TWEAKS
+================================ */
+@media (max-width: 768px) {
+  .card img {
+    width: 130px !important;
+    height: 130px !important;
+  }
+
+  .card h5 {
+    margin-bottom: 1rem;
+  }
+}
+
+/*
+    3) PAGINATION
+*/
 .custom-pagination-container {
   display: flex;
   justify-content: space-between;
@@ -66,19 +141,16 @@
   row-gap: 10px;
 }
 
-/* LEFT INFO TEXT */
 .pagination-info {
   font-size: 14px;
   color: #555;
 }
 
-/* PAGINATION BUTTON CONTAINER */
 .custom-pagination {
   display: flex;
   gap: 6px;
 }
 
-/* DEFAULT BUTTON STYLE */
 .custom-pagination button {
   border: none;
   padding: 8px 12px;
@@ -93,7 +165,6 @@
   font-weight: 500;
 }
 
-/* HOVER EFFECT */
 .custom-pagination button:hover:not(.active):not(:disabled) {
   background: #e6e9ff;
   color: #3a4bff;
@@ -101,7 +172,6 @@
   box-shadow: 0 3px 8px rgba(0,0,0,0.08);
 }
 
-/* ACTIVE PAGE */
 .custom-pagination .page-number.active {
   background: #3a4bff;
   color: white;
@@ -109,20 +179,18 @@
   box-shadow: 0 4px 12px rgba(58, 75, 255, 0.3);
 }
 
-/* ARROW BUTTONS */
 .custom-pagination .page-btn {
   background: #e8e8e8;
   font-weight: 700;
 }
 
-/* DISABLED OPTIONS */
+
 .custom-pagination button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-
-/* Go To Page Input */
+/* Go-To Page Input */
 .go-input {
   width: 70px;
   padding: 6px 10px;
@@ -138,7 +206,6 @@
   box-shadow: 0 0 0 2px rgba(58, 75, 255, 0.2);
 }
 
-/* Go Button */
 .go-btn {
   padding: 6px 12px;
   background: #3a4bff;
@@ -154,86 +221,139 @@
   background: #2d3bcc;
 }
 
-
-/* RESPONSIVE */
-@media (max-width: 576px) {
-  .custom-pagination-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .custom-pagination {
-    margin-top: 6px;
-  }
-}
-
-
-
-
-/* SIMPLE TABLE WRAPPER */
+/*
+    4) TABLE WRAPPER & STRUCTURE
+*/
+/* 
+   TABLE CONTAINER
+ */
 .table-container {
   width: 100%;
-  overflow-x: auto;
+  max-height: calc(100vh - 300px);
+  overflow: auto;
+
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
   -webkit-overflow-scrolling: touch;
 }
 
-/* SIMPLE TABLE STYLE */
+/* 
+   TABLE BASE
+ */
 .simple-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 760px; /* responsive horizontal scroll */
 }
 
-/* FIX: consistent row separator line */
-.simple-table tbody tr {
-  border-bottom: 1px solid #e5e5e5;
-}
-
-/* FIX: remove extra space at bottom */
-.simple-table tbody tr:last-child {
-  border-bottom: none;  /* removes gap */
-}
-
-
-/* FIX: remove cell borders so no boxes appear */
-.simple-table tbody td {
-  padding: 12px;
-  white-space: nowrap;
-  font-size: 14px;
-  border: none;              /* ensure no boxed border */
-  vertical-align: middle;    /* fix cell alignment */
-}
-
-/* FIX: header stays clean */
+/* 
+   HEADER – SOLID DARK (STABLE)
+ */
 .simple-table thead th {
-  border-bottom: 2px solid #ddd; /* keep header line clean */
-  border-top: none;
-  border-left: none;
-  border-right: none;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  padding: 16px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+
+  color: #ffffff;
+  background: #111827; /* solid dark */
+
+  border: none;
+  border-bottom: 1px solid #020617;
 }
 
-/* HEADER */
-/* .simple-table thead th {
-  background: #f5f5f5;
-  padding: 12px;
-  font-weight: 600;
-  border-bottom: 2px solid #ddd;
+/* Rounded header corners */
+.simple-table thead th:first-child {
+  border-top-left-radius: 14px;
+}
+.simple-table thead th:last-child {
+  border-top-right-radius: 14px;
+}
+
+/* ===============================
+   ROWS – CLEAN (NO LINES)
+================================ */
+.simple-table tbody tr {
+  background: #ffffff;
+  transition: background-color 0.15s ease;
+}
+
+.simple-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* ===============================
+   CELLS – READABLE DATA
+================================ */
+.simple-table tbody td {
+  padding: 14px 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #0f172a;
+
   white-space: nowrap;
-  font-size: 14px;
-} */
+  vertical-align: middle;
 
-/* ROWS */
-/* .simple-table tbody tr {
-  border-bottom: 1px solid #eee;
-} */
+  border: none !important; /* 🔥 removes ALL row lines */
+}
 
-/* CELLS */
-/* .simple-table tbody td {
-  padding: 12px;
-  white-space: nowrap;
-  font-size: 14px;
-} */
+/* 
+   IMAGE COLUMN FIX (OPTIONAL)
+*/
+.simple-table tbody td img {
+  border-radius: 8px;
+  display: block;
+}
 
-/* ACTION BUTTONS */
+/* 
+   ACTION ICON ALIGNMENT
+ */
+.simple-table tbody td .action-icons,
+.simple-table tbody td .actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 
+   MOBILE OPTIMIZATION
+ */
+@media (max-width: 768px) {
+  .simple-table {
+    min-width: 680px;
+  }
+
+  .simple-table thead th {
+    font-size: 13px;
+    padding: 14px 12px;
+  }
+
+  .simple-table tbody td {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
+
+/*
+   RESPONSIVE WRAPPER
+ */
+.table-container.table-responsive {
+  overflow-x: auto;
+}
+
+
+/*
+    5) ACTION BUTTONS
+*/
 .delete-icon-btn,
 .edit-icon-btn {
   background: none;
@@ -241,36 +361,31 @@
   cursor: pointer;
 }
 
-.delete-icon-btn {
-  color: #d9534f;
-}
-
 .edit-icon-btn {
   color: #0275d8;
 }
-/* .table-card{
-  min-height: 450px !important;
-  max-height: 475px !important;
-} */
-/* TABLE INTERNAL SCROLLING WITHOUT PAGE SCROLL */
-.table-container {
-  width: 100%;
-  max-height: calc(100vh - 350px); /* adjusts table height to viewport space */
-  overflow-y: auto;                 /* internal scroll only */
-  overflow-x: auto;
-  border: 1px solid #eee;
+
+/* Delete Button - Red Outline */
+.delete-icon-btn {
+  background: transparent;
+  border: 1px solid #ff4d4d;
+  color: #ff4d4d;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: 0.25s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Sticky header while scrolling */
-.simple-table thead th {
-  position: sticky;
-  top: 0;
-  background: #f5f5f5;
-  z-index: 5;
+.delete-icon-btn:hover {
+  background: #ff4d4d;
+  color: white;
 }
 
-
-/* UNIQUE BADGE STYLE */
+/*
+    6) BADGES
+*/
 .badge-type {
   padding: 6px 14px;
   border-radius: 50px;
@@ -283,30 +398,29 @@
   justify-content: center;
 }
 
-/* DELETE BUTTON - MINIMAL RED OUTLINE */
-.delete-icon-btn {
-  background: transparent;
-  border: 1px solid #ff4d4d;
-  color: #ff4d4d;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.25s ease-in-out;
+/*
+    7) PROFILE IMAGE UPLOAD OVERLAY
+*/
+.profile-upload-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  opacity: 0;
+  transition: 0.3s;
 }
 
-.delete-icon-btn:hover {
-  background: #ff4d4d;
-  color: white;
+.position-relative:hover .profile-upload-overlay {
+  opacity: 1;
 }
 
-
-.table-container.table-responsive {
-  overflow-x: auto;
-}
-
+/*
+    8) RESPONSIVE DESIGN
+*/
 @media (max-width: 768px) {
   .glass-table tbody td,
   .glass-table thead th {
@@ -324,6 +438,17 @@
 
   .delete-icon-btn {
     padding: 4px 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .custom-pagination-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .custom-pagination {
+    margin-top: 6px;
   }
 }
 
@@ -353,3 +478,36 @@
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Title */
+/* .admin-page-container .breadcrumb-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.admin-page-container .breadcrumb-path {
+  color: #6c757d;
+  font-size: 14px;
+  margin-top: -5px;
+} */

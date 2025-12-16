@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Navbar,
   Container,
@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-bootstrap";
 import { FiMenu } from "react-icons/fi";
-import admin from "../assets/Images/admin.png";
+import defaultAvatar from "../assets/Images/admin.png";
 import logo from "../assets/Images/logo.jpg";
 import "../assets/styles/header.css";
 import { useNavigate } from "react-router-dom";
@@ -16,11 +16,30 @@ import { useNavigate } from "react-router-dom";
 export default function Header({ toggleSidebar }) {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Clear token or session if any
-    localStorage.removeItem("authToken");
+  const [profileImage, setProfileImage] = useState(
+    localStorage.getItem("adminProfileImage") || defaultAvatar
+  );
 
-    // Navigate to sign-in page
+  useEffect(() => {
+    const updateProfileImage = () => {
+      const updated =
+        localStorage.getItem("adminProfileImage") || defaultAvatar;
+      setProfileImage(updated);
+    };
+
+    window.addEventListener("profile-image-updated", updateProfileImage);
+
+    window.addEventListener("storage", updateProfileImage);
+
+    return () => {
+      window.removeEventListener("profile-image-updated", updateProfileImage);
+      window.removeEventListener("storage", updateProfileImage);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("adminProfileImage");
     navigate("/signin");
   };
 
@@ -38,12 +57,12 @@ export default function Header({ toggleSidebar }) {
         <Navbar.Brand className="d-flex align-items-center gap-2 me-auto">
           <img src={logo} alt="Logo" className="header-logo" />
         </Navbar.Brand>
-
+{/* 
         <div className="search-container d-none d-md-block me-3">
           <Form className="d-flex">
             <FormControl type="search" placeholder="Search..." />
           </Form>
-        </div>
+        </div> */}
 
         <div className="profile-wrapper">
           <Dropdown align="end">
@@ -53,19 +72,18 @@ export default function Header({ toggleSidebar }) {
               className="p-0 border-0 bg-transparent"
             >
               <Image
-                src={admin}
+                src={profileImage}
                 roundedCircle
                 width="40"
                 height="40"
                 style={{ objectFit: "cover" }}
+                onError={(e) => {
+                  e.target.src = defaultAvatar;
+                }}
               />
             </Dropdown.Toggle>
 
             <Dropdown.Menu>
-              <Dropdown.Item onClick={() => navigate("/profile")}>
-                Profile
-              </Dropdown.Item>
-
               <Dropdown.Item onClick={handleLogout}>
                 Logout
               </Dropdown.Item>

@@ -1,5 +1,6 @@
+// src/pages/Gallery/GalleryTable.jsx
 import React, { useState } from "react";
-import { Table, Form, Row, Col, Card, Button } from "react-bootstrap";
+import { Table, Form, Row, Col, Card } from "react-bootstrap";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 
 export default function GalleryTable({
@@ -18,20 +19,27 @@ export default function GalleryTable({
   const [editingRowId, setEditingRowId] = useState(null);
   const [editValue, setEditValue] = useState("");
 
-  // FILTER
+  // ► FILTER TABLE DATA
   const filteredData = data.filter((item) =>
-    Object.values(item).join(" ").toLowerCase().includes(search.toLowerCase())
+    Object.values(item)
+      .join(" ")
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
-  // PAGINATION
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
+  // ► PAGINATION LOGIC
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
   const indexOfLast = currentPage * rowsPerPage;
   const indexOfFirst = indexOfLast - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirst, indexOfLast);
 
-  const nextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
-  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
+  const nextPage = () =>
+    currentPage < totalPages && setCurrentPage((p) => p + 1);
 
+  const prevPage = () =>
+    currentPage > 1 && setCurrentPage((p) => p - 1);
+
+  // PAGE BUTTON DISPLAY LOGIC
   const getPageNumbers = () => {
     if (totalPages <= 3) return [...Array(totalPages)].map((_, i) => i + 1);
     if (currentPage <= 2) return [1, 2, "...", totalPages];
@@ -40,6 +48,7 @@ export default function GalleryTable({
     return [1, "...", currentPage, "...", totalPages];
   };
 
+  // ► SAVE ORDER ID CHANGE
   const handleSave = (row) => {
     if (!onEdit) return;
     onEdit(row, editValue);
@@ -50,7 +59,7 @@ export default function GalleryTable({
     <Card className="shadow-sm p-4 mt-4 table-card">
       <h5 className="text-center fw-bold mb-3">{title}</h5>
 
-      {/* Top Controls */}
+      {/* TOP CONTROLS */}
       <Row className="mb-3">
         <Col xs={6} md={3}>
           <Form.Select
@@ -84,95 +93,120 @@ export default function GalleryTable({
           <thead>
             <tr>
               <th>S.No</th>
+
               {columns.map((col, idx) => (
                 <th key={idx}>{col.header}</th>
               ))}
+
               <th>Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {currentRows.map((row, i) => (
-              <tr key={row.id}>
-                <td>{indexOfFirst + i + 1}</td>
+            {currentRows.length > 0 ? (
+              currentRows.map((row, index) => (
+                <tr key={row.id}>
+                  <td>{indexOfFirst + index + 1}</td>
 
-                {columns.map((col, idx2) => {
-                  if (col.accessor === "order_id" && editingRowId === row.id) {
+                  {/* LOOP THROUGH COLUMNS */}
+                  {columns.map((col, idx2) => {
+                    // SELECT VALUE (supports total_images + total_videos)
+                    const value =
+                      row[col.accessor] ??
+                      row.total_images ??
+                      row.total_videos ??
+                      "";
+
+                    // If editing order_id
+                    if (
+                      col.accessor === "order_id" &&
+                      editingRowId === row.id
+                    ) {
+                      return (
+                        <td key={idx2}>
+                          <input
+                            className="form-control"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                          />
+                        </td>
+                      );
+                    }
+
+                    // Category clickable
                     return (
-                      <td key={idx2}>
-                        <input
-                          className="form-control"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                        />
+                      <td
+                        key={idx2}
+                        onClick={
+                          col.accessor === "category"
+                            ? () => onCategoryClick(row[col.accessor])
+                            
+                            : undefined
+                            
+                        }
+                        
+                        style={
+                          col.accessor === "category"
+                            ? {
+                                cursor: "pointer",
+                                color: "blue",
+                                textDecoration: "underline",
+                                
+                              }
+                            : {}
+                            
+                        }
+                        
+                      >
+                        {value}
+                        
                       </td>
                     );
-                  }
+                  })}
 
-                  return (
-                    <td
-                      key={idx2}
-                      onClick={
-                        col.accessor === "category"
-                          ? () => onCategoryClick(row[col.accessor])
-                          : undefined
-                      }
-                      style={
-                        col.accessor === "category"
-                          ? {
-                              cursor: "pointer",
-                              color: "blue",
-                              textDecoration: "underline",
-                            }
-                          : {}
-                      }
-                    >
-                      {row[col.accessor]}
-                    </td>
-                  );
-                })}
+                  {/* ACTION BUTTONS */}
+                  <td className="d-flex gap-2">
+                    {editingRowId === row.id ? (
+                      <>
+                        <button
+                          className="edit-icon-btn"
+                          onClick={() => handleSave(row)}
+                        >
+                          Save
+                        </button>
 
-                <td className="d-flex gap-2">
-                  {editingRowId === row.id ? (
-                    <>
-                      <button
-                        className="edit-icon-btn"
-                        onClick={() => handleSave(row)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        className="delete-icon-btn"
-                        onClick={() => setEditingRowId(null)}
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="edit-icon-btn"
-                        onClick={() => {
-                          setEditingRowId(row.id);
-                          setEditValue(row.order_id);
-                        }}
-                      >
-                        <FiEdit size={16} />
-                      </button>
+                        <button
+                          className="delete-icon-btn"
+                          onClick={() => setEditingRowId(null)}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="edit-icon-btn"
+                          onClick={() => {
+                            setEditingRowId(row.id);
+                            setEditValue(row.order_id);
+                            
+                          }}
+                        >
+                          <FiEdit size={16} />
+                        </button>
 
-                      <button
-                        className="delete-icon-btn"
-                        onClick={() => onDelete(row)}
-                      >
-                        <FiTrash2 size={16} />
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-
-            {currentRows.length === 0 && (
+                        <button
+                          className="delete-icon-btn"
+                          onClick={() => onDelete(row)}
+                        >
+                          <FiTrash2 size={16} />
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
                 <td colSpan={columns.length + 2} className="text-center py-3">
                   No records found.
@@ -183,16 +217,21 @@ export default function GalleryTable({
         </Table>
       </div>
 
-      {/* PAGINATION (Your original design) */}
-      <div className="custom-pagination-container mt-4">
+      {/* PAGINATION FOOTER */}
+      <div className="custom-pagination-container mt-4 d-flex justify-content-between align-items-center flex-wrap">
         <div className="pagination-info">
-          Showing {filteredData.length === 0 ? 0 : indexOfFirst + 1} to{" "}
-          {Math.min(indexOfLast, filteredData.length)} of {filteredData.length} entries
+          {filteredData.length === 0 ? (
+            <>Showing 0 to 0 of 0 entries</>
+          ) : (
+            <>
+              Showing {indexOfFirst + 1} to{" "}
+              {Math.min(indexOfLast, filteredData.length)} of{" "}
+              {filteredData.length} entries
+            </>
+          )}
         </div>
 
         <div className="d-flex align-items-center gap-3 flex-wrap">
-
-          {/* PAGE BUTTONS */}
           <div className="custom-pagination">
             <button
               className="page-btn"
@@ -202,12 +241,10 @@ export default function GalleryTable({
               &laquo;
             </button>
 
-            {getPageNumbers().map((p, idx) => (
+            {getPageNumbers().map((p, i) => (
               <button
-                key={idx}
-                className={`page-number ${
-                  p === currentPage ? "active" : ""
-                }`}
+                key={i}
+                className={`page-number ${p === currentPage ? "active" : ""}`}
                 onClick={() =>
                   p !== "..." && typeof p === "number"
                     ? setCurrentPage(p)
@@ -243,7 +280,7 @@ export default function GalleryTable({
             <button
               className="go-btn"
               onClick={() => {
-                const page = Number(goToPage);
+                const page = Number(goToPage);                       
                 if (page >= 1 && page <= totalPages) {
                   setCurrentPage(page);
                   setGoToPage("");
@@ -258,5 +295,3 @@ export default function GalleryTable({
     </Card>
   );
 }
-
-

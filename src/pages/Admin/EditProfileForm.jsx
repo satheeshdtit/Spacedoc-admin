@@ -1,22 +1,24 @@
 import React, { useState } from "react";
-import { Form, Button } from "react-bootstrap";
+import { Form, Button, Spinner } from "react-bootstrap";
+import axios from "axios";
 
 export default function EditProfileForm({ data, onUpdate, onCancel }) {
+  const BASE = import.meta.env.VITE_API_BASE_URL;
+  const token = JSON.parse(localStorage.getItem("authUser"))?.token || "";
+
   const [form, setForm] = useState({
-    username: data.username,
-    email: data.email,
-    type: data.type,
+    username: data.adminname || data.username || "",
+    email: data.email || "",
+    type: data.admin_type || data.type || "",
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  // Validate fields
   const validate = () => {
     let newErrors = {};
 
-    if (!form.username.trim()) {
-      newErrors.username = "Username is required.";
-    }
+    if (!form.username.trim()) newErrors.username = "Username is required.";
 
     if (!form.email.trim()) {
       newErrors.email = "Email is required.";
@@ -24,27 +26,52 @@ export default function EditProfileForm({ data, onUpdate, onCancel }) {
       newErrors.email = "Enter a valid email.";
     }
 
-    if (!form.type.trim()) {
-      newErrors.type = "Admin type is required.";
-    }
+    if (!form.type.trim()) newErrors.type = "Admin type is required.";
 
     setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0; // no errors → valid
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-
-    // remove error message after typing
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = () => {
-    if (!validate()) return; // stop if invalid
+  const handleSubmit = async () => {
+    if (!validate()) return;
 
-    onUpdate(form);
-    onCancel();
+    try {
+      setLoading(true);
+
+      await axios.put(
+        `${BASE}/admin/editAdmin`,
+        {
+          id: data.id,                    
+          adminname: form.username,      
+          email: form.email,             
+          admin_type: form.type,          
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Profile updated successfully");
+
+      onUpdate?.();  
+      onCancel?.();  
+
+    } catch (err) {
+      console.error("UPDATE PROFILE ERROR:", err?.response?.data || err.message);
+      alert(
+        err?.response?.data?.message ||
+        "Failed to update profile"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,7 +79,6 @@ export default function EditProfileForm({ data, onUpdate, onCancel }) {
       <h5 className="text-center fw-bold mb-4">EDIT ADMIN PROFILE</h5>
 
       <Form>
-        {/* Username */}
         <Form.Group className="mb-3">
           <Form.Label>Username*</Form.Label>
           <Form.Control
@@ -67,7 +93,6 @@ export default function EditProfileForm({ data, onUpdate, onCancel }) {
           </Form.Control.Feedback>
         </Form.Group>
 
-        {/* Email */}
         <Form.Group className="mb-3">
           <Form.Label>Email*</Form.Label>
           <Form.Control
@@ -82,7 +107,6 @@ export default function EditProfileForm({ data, onUpdate, onCancel }) {
           </Form.Control.Feedback>
         </Form.Group>
 
-        {/* Admin Type */}
         <Form.Group className="mb-3">
           <Form.Label>Admin Type*</Form.Label>
           <Form.Select
@@ -102,12 +126,12 @@ export default function EditProfileForm({ data, onUpdate, onCancel }) {
         </Form.Group>
 
         <div className="d-flex justify-content-end gap-2">
-          <Button variant="secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel} disabled={loading}>
             Cancel
           </Button>
 
-          <Button variant="primary" onClick={handleSubmit}>
-            Update
+          <Button variant="primary" onClick={handleSubmit} disabled={loading}>
+            {loading ? <Spinner size="sm" /> : "Update"}
           </Button>
         </div>
       </Form>

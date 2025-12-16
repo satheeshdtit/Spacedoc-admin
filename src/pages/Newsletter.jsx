@@ -1,20 +1,15 @@
-import React, { useState } from "react";
-import {
-  Container,
-  Card,
-  Table,
-  Row,
-  Col,
-  Form,
-} from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Container, Card, Table, Row, Col, Form } from "react-bootstrap";
 import { FiTrash2 } from "react-icons/fi";
+import axios from "axios";
 
 export default function NewsLetter() {
-  // STATIC DATA
-  const staticSubscribers = [
-    { id: 1, email: "test@gmail.com" },
-    { id: 2, email: "test1@gmail.com" },
-  ];
+  // const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const BASE = import.meta.env.VITE_API_BASE_URL;
+  const API = `${BASE}${import.meta.env.VITE_API_SUBSCRIBE}`;
+  // STATIC DATA (will be replaced by API)
+  const staticSubscribers = [];
 
   const [data, setData] = useState(staticSubscribers);
   const [search, setSearch] = useState("");
@@ -22,12 +17,25 @@ export default function NewsLetter() {
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPage, setGoToPage] = useState("");
 
-  // FILTER DATA
+  const fetchSubscribers = async () => {
+    try {
+      const res = await axios.get(API);
+
+      setData(res.data.data || []);
+    } catch (err) {
+      console.error("GET SUBSCRIBERS ERROR:", err);
+    }
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSubscribers();
+  }, []);
+
   const filteredData = data.filter((item) =>
     item.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  // PAGINATION CALC
   const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -41,21 +49,38 @@ export default function NewsLetter() {
     if (currentPage < totalPages) setCurrentPage((p) => p + 1);
   };
 
-  // DELETE FUNCTION
-  const handleDelete = (row) => {
+  const handleDelete = async (row) => {
     const confirmDelete = window.confirm("Are you sure you want to delete?");
     if (!confirmDelete) return;
 
-    setData((prev) => prev.filter((item) => item.id !== row.id));
+    try {
+      const token = JSON.parse(localStorage.getItem("authUser"))?.token;
+
+      await axios.delete(`${BASE}/admin/subscribe/${row.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // ✅ REMOVE FROM UI AFTER SUCCESS
+      setData((prev) => prev.filter((item) => item.id !== row.id));
+
+      alert("Subscriber deleted successfully ✅");
+    } catch (err) {
+      console.error(
+        "DELETE SUBSCRIBER ERROR:",
+        err?.response?.data || err.message
+      );
+
+      alert(err?.response?.data?.message || "Failed to delete subscriber ❌");
+    }
   };
 
   return (
     <Container className="mt-5">
       <Card className="shadow-sm p-4">
-
         <h5 className="text-center fw-bold mb-4">SUBSCRIBERS</h5>
 
-        {/* TOP BAR */}
         <Row className="mb-3">
           <Col xs={6} md={3}>
             <Form.Select
@@ -85,7 +110,6 @@ export default function NewsLetter() {
           </Col>
         </Row>
 
-        {/* TABLE */}
         <div className="table-container">
           <Table className="simple-table">
             <thead>
@@ -124,7 +148,6 @@ export default function NewsLetter() {
           </Table>
         </div>
 
-        {/* PAGINATION */}
         <div className="custom-pagination-container mt-4">
           <div className="pagination-info">
             Showing {filteredData.length === 0 ? 0 : indexOfFirstRow + 1} to{" "}
@@ -133,7 +156,6 @@ export default function NewsLetter() {
           </div>
 
           <div className="d-flex align-items-center gap-3 flex-wrap">
-            {/* PAGE BUTTONS */}
             <div className="custom-pagination">
               <button
                 className="page-btn"
@@ -164,7 +186,6 @@ export default function NewsLetter() {
               </button>
             </div>
 
-            {/* GO TO PAGE */}
             <div className="go-to-page d-flex align-items-center gap-2">
               <input
                 type="number"

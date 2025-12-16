@@ -1,53 +1,139 @@
+/* 
+   CARD – SOFT GLASS SURFACE
+*/
 .journey-card {
-  border-radius: 20px;
-  border: none;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  position: relative;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: linear-gradient(180deg, #ffffff, #f7f9fc);
+  box-shadow:
+    0 12px 30px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
+/* Accent edge */
+.journey-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.15);
+}
+
+/*
+   TITLE – PRODUCT STYLE
+*/
 .journey-title {
   font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: 0.5px;
+  font-size: 1.55rem;
+  letter-spacing: 0.3px;
+  color: #0f172a;
+  margin-bottom: 1.2rem;
 }
 
+/* 
+   LABELS – MINIMAL
+ */
 .journey-form label {
   font-weight: 600;
+  font-size: 0.85rem;
   margin-bottom: 6px;
+  color: #475569;
 }
 
-.journey-form .form-control {
-  border-radius: 12px;
-  padding: 12px;
-  border: 1px solid #d0d0d0;
-  transition: all 0.2s ease-in-out;
+/* 
+   INPUTS – FLOATING SURFACE
+ */
+.journey-form .form-control,
+.journey-form .form-select {
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(135deg, #c7d2fe, #e0e7ff) border-box;
+
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.15s ease,
+    background 0.25s ease;
 }
 
-.journey-form .form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 5px rgba(13, 110, 253, 0.3);
+/* Focus – floating glow */
+.journey-form .form-control:focus,
+.journey-form .form-select:focus {
+  outline: none;
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(135deg, #3b82f6, #6366f1) border-box;
+
+  box-shadow:
+    0 0 0 4px rgba(59, 130, 246, 0.18),
+    0 6px 18px rgba(59, 130, 246, 0.25);
+
+  transform: translateY(-1px);
 }
 
+/* Disabled */
+.journey-form .form-control:disabled,
+.journey-form .form-select:disabled {
+  background: #f1f5f9;
+  cursor: not-allowed;
+}
+
+/* 
+   IMAGE PREVIEW – MODERN DROPZONE
+ */
 .image-preview {
-  border: 2px dashed #b5b5b5;
-  padding: 10px;
-  border-radius: 12px;
-  background: #f8f9fa;
-  transition: 0.2s;
+  border-radius: 16px;
+  padding: 14px;
+  border: 2px dashed #c7d2fe;
+  background: radial-gradient(
+    circle at top,
+    #f8fafc,
+    #ffffff
+  );
+  transition: all 0.3s ease;
 }
 
 .image-preview:hover {
-  border-color: #0d6efd;
+  border-color: #6366f1;
+  background: #eef2ff;
 }
 
+/* 
+   BUTTON – PREMIUM CTA
+ */
 .journey-submit-btn {
-  padding: 10px 30px;
-  border-radius: 30px;
+  padding: 12px 38px;
+  border-radius: 999px;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  transition: 0.3s ease;
+  font-size: 0.95rem;
+  letter-spacing: 0.4px;
+
+  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  border: none;
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 24px rgba(59, 130, 246, 0.35);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .journey-submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0px 4px 12px rgba(13, 110, 253, 0.3);
+  transform: translateY(-3px);
+  box-shadow:
+    0 16px 32px rgba(59, 130, 246, 0.45);
+}
+
+.journey-submit-btn:active {
+  transform: translateY(0);
+  box-shadow:
+    0 8px 18px rgba(59, 130, 246, 0.3);
 }

@@ -1,84 +1,131 @@
 import React, { useState } from "react";
-import { Form, Button, Card, Container, Row, Col } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import {
+  Form,
+  Button,
+  Card,
+  Container,
+  Alert,
+  InputGroup,
+} from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import main_logo from "../../assets/Images/main_logo.png";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function SignIn() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({
+    adminname: "",
+    admin_password: "",
+  });
+
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false); // ✅ TOGGLE STATE
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const validate = () => {
-    let newErrors = {};
-
-    if (!form.email) newErrors.email = "Email is required";
-    if (!form.password) newErrors.password = "Password is required";
+    const newErrors = {};
+    if (!form.adminname) newErrors.adminname = "Admin name is required";
+    if (!form.admin_password)
+      newErrors.admin_password = "Password is required";
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // means valid
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setServerError("");
+
     if (!validate()) return;
-    alert("Sign In Successful!");
+
+    try {
+      setLoading(true);
+      const user = await login(form.adminname, form.admin_password);
+      console.log("USER AFTER LOGIN:", user);
+
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      setServerError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Container className="d-flex justify-content-center align-items-center min-vh-100">
-      <Card className="p-4 shadow-lg auth-card">
+      <Card className="p-4 shadow-lg" style={{ maxWidth: 420, width: "100%" }}>
         <div className="text-center mb-3">
-          <img src={main_logo} alt="Logo" className="auth-logo" />
+          <img src={main_logo} alt="Logo" style={{ height: 70 }} />
         </div>
 
-        <h3 className="text-center mb-3 fw-bold">Sign In</h3>
+        <h3 className="text-center fw-bold mb-3">Sign In</h3>
 
-        <Form>
+        {serverError && <Alert variant="danger">{serverError}</Alert>}
+
+        <Form onSubmit={handleSubmit}>
+          {/* ✅ ADMIN NAME */}
           <Form.Group className="mb-3">
-            <Form.Label>Email*</Form.Label>
+            <Form.Label>Admin Name</Form.Label>
             <Form.Control
-              type="email"
-              name="email"
-              placeholder="Enter email"
-              value={form.email}
+              type="text"
+              name="adminname"
+              placeholder="Enter admin name"
+              value={form.adminname}
               onChange={handleChange}
-              isInvalid={!!errors.email}
+              isInvalid={!!errors.adminname}
             />
-            <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">
+              {errors.adminname}
+            </Form.Control.Feedback>
           </Form.Group>
 
+          {/* ✅ PASSWORD WITH EYE ICON */}
           <Form.Group className="mb-3">
-            <Form.Label>Password*</Form.Label>
-            <Form.Control
-              type="password"
-              name="password"
-              placeholder="Enter password"
-              value={form.password}
-              onChange={handleChange}
-              isInvalid={!!errors.password}
-            />
-            <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
+            <Form.Label>Password</Form.Label>
+
+            <InputGroup>
+              <Form.Control
+                type={showPassword ? "text" : "password"} // ✅ TOGGLE
+                name="admin_password"
+
+                
+                placeholder="Enter password"
+                value={form.admin_password}
+                onChange={handleChange}
+                isInvalid={!!errors.admin_password}
+              />
+
+              <InputGroup.Text
+                style={{ cursor: "pointer" }}
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </InputGroup.Text>
+
+              <Form.Control.Feedback type="invalid">
+                {errors.admin_password}
+              </Form.Control.Feedback>
+            </InputGroup>
           </Form.Group>
 
-          <Button
-            variant="primary"
-            className="w-100 mt-2"
-            onClick={handleSubmit}
-          >
-            Sign In
+          <Button type="submit" className="w-100" disabled={loading}>
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
-
-          <p className="text-center mt-3">
-            Don't have an account? <Link to="/signup">Create one</Link>
-          </p>
         </Form>
+
+        <p className="text-center mt-3">
+          Don't have an account? <Link to="/signup">Create one</Link>
+        </p>
       </Card>
     </Container>
   );
 }
-
-
-
-

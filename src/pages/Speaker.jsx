@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Container,
   Card,
@@ -8,84 +9,146 @@ import {
   Form,
   Button,
 } from "react-bootstrap";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiCheck, FiX } from "react-icons/fi";
 
 export default function InviteForSpeaker() {
-  const speakerRequests = [
-    {
-      id: 1,
-      name: "test",
-      email: "test@gmail.com",
-      phone: "7855675478",
-      date: "27/11/2025",
-      organization: "TEST",
-      status: "Pending",
-    },
-  ];
+  const BASE = import.meta.env.VITE_API_BASE_URL;
+  const API = `${BASE}${import.meta.env.VITE_API_SPEAKER}`;
 
-  const [data, setData] = useState(speakerRequests);
+  const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPage, setGoToPage] = useState("");
 
-  // ⭐ Inline Edit States
   const [editingRowId, setEditingRowId] = useState(null);
   const [editValue, setEditValue] = useState("");
 
-  // FILTER
+  // ✅ FETCH SPEAKERS
+  useEffect(() => {
+    fetchSpeakers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchSpeakers = async () => {
+    try {
+      const res = await axios.get(API);
+
+      if (res.data?.status === "success") {
+        const formatted = res.data.data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          email: item.email,
+          phone: item.phone,
+          date: item.date?.substring(0, 10),
+          organization: item.org_name,
+          address: item.org_address,
+          message: item.message,
+          status: item.status,
+          fullData: item,
+        }));
+
+        setData(formatted);
+      }
+    } catch (err) {
+      console.error("Speaker API Error:", err);
+      alert("Failed to fetch speaker data");
+    }
+  };
+
+  // ✅ FILTER
   const filteredData = data.filter((item) =>
     Object.values(item).join(" ").toLowerCase().includes(search.toLowerCase())
   );
 
-  // PAGINATION
+  // ✅ PAGINATION
   const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
-  const prevPage = () => {
-    if (currentPage > 1) setCurrentPage((p) => p - 1);
-  };
+  const prevPage = () => currentPage > 1 && setCurrentPage((p) => p - 1);
+  const nextPage = () =>
+    currentPage < totalPages && setCurrentPage((p) => p + 1);
 
-  const nextPage = () => {
-    if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-  };
+  // ✅ ✅ DELETE SPEAKER (API)
+  const handleDelete = async (row) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this request?"
+    );
+    if (!confirmDelete) return;
 
-  // ⭐ DELETE
-  const handleDelete = (row) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete?");
-    if (confirmDelete) {
+    try {
+      const token = JSON.parse(localStorage.getItem("authUser"))?.token;
+
+      await axios.delete(`${BASE}/admin/speaker/${row.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // ✅ REMOVE FROM UI
       setData((prev) => prev.filter((item) => item.id !== row.id));
+
+      alert("Speaker deleted successfully ✅");
+    } catch (err) {
+      console.error(
+        "DELETE SPEAKER ERROR:",
+        err?.response?.data || err.message
+      );
+
+      alert(err?.response?.data?.message || "Failed to delete speaker ❌");
     }
   };
 
-  // ⭐ START EDIT
+  // ✅ EDIT STATUS
   const handleEdit = (row) => {
     setEditingRowId(row.id);
     setEditValue(row.status);
   };
 
-  // ⭐ SAVE EDIT
-  const handleSave = (row) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === row.id ? { ...item, status: editValue } : item
-      )
-    );
-    setEditingRowId(null);
+  // ✅ ✅ UPDATE STATUS (API)
+  const handleSave = async (row) => {
+    try {
+      const token = JSON.parse(localStorage.getItem("authUser"))?.token;
+
+      const formData = new FormData();
+      formData.append("id", row.id);
+      formData.append("status", editValue);
+
+      const res = await axios.post(`${BASE}/admin/updateSpeaker`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      alert(res.data?.message || "Status updated successfully ✅");
+
+      // ✅ UPDATE UI
+      setData((prev) =>
+        prev.map((item) =>
+          item.id === row.id ? { ...item, status: editValue } : item
+        )
+      );
+
+      setEditingRowId(null);
+    } catch (err) {
+      console.error(
+        "UPDATE SPEAKER STATUS ERROR:",
+        err?.response?.data || err.message
+      );
+
+      alert(err?.response?.data?.message || "Failed to update status ❌");
+    }
   };
 
-  const handleCancel = () => {
-    setEditingRowId(null);
-  };
+  const handleCancel = () => setEditingRowId(null);
 
   return (
     <Container className="mt-5">
       <Card className="shadow-sm p-4">
         <h5 className="text-center fw-bold mb-4">INVITE FOR SPEAKER</h5>
 
-        {/* CONTROL BAR */}
         <Row className="mb-3">
           <Col xs={6} md={3}>
             <Form.Select
@@ -115,7 +178,6 @@ export default function InviteForSpeaker() {
           </Col>
         </Row>
 
-        {/* TABLE */}
         <div className="table-container">
           <Table className="simple-table">
             <thead>
@@ -125,7 +187,7 @@ export default function InviteForSpeaker() {
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Date</th>
-                <th>Organization Name</th>
+                <th>Organization</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -141,7 +203,6 @@ export default function InviteForSpeaker() {
                   <td>{item.date}</td>
                   <td>{item.organization}</td>
 
-                  {/* ⭐ DROPDOWN FOR STATUS */}
                   <td>
                     {editingRowId === item.id ? (
                       <Form.Select
@@ -157,22 +218,23 @@ export default function InviteForSpeaker() {
                     )}
                   </td>
 
-                  {/* ACTION BUTTONS */}
                   <td className="d-flex gap-2">
                     {editingRowId === item.id ? (
                       <>
                         <button
                           className="edit-icon-btn"
+                          title="Save"
                           onClick={() => handleSave(item)}
                         >
-                          Save
+                          <FiCheck size={18} />
                         </button>
 
                         <button
                           className="delete-icon-btn"
+                          title="Cancel"
                           onClick={handleCancel}
                         >
-                          Cancel
+                          <FiX size={18} />
                         </button>
                       </>
                     ) : (
@@ -183,7 +245,6 @@ export default function InviteForSpeaker() {
                         >
                           <FiEdit size={16} />
                         </button>
-
                         <button
                           className="delete-icon-btn"
                           onClick={() => handleDelete(item)}
@@ -195,14 +256,22 @@ export default function InviteForSpeaker() {
                   </td>
                 </tr>
               ))}
+
+              {currentRows.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="text-center py-3">
+                    No records found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </Table>
         </div>
 
-        {/* PAGINATION */}
+        {/* ✅ PAGINATION FOOTER */}
         <div className="custom-pagination-container mt-4">
           <div className="pagination-info">
-            Showing {indexOfFirstRow + 1} to{" "}
+            Showing {filteredData.length === 0 ? 0 : indexOfFirstRow + 1} to{" "}
             {Math.min(indexOfLastRow, filteredData.length)} of{" "}
             {filteredData.length} entries
           </div>
@@ -238,7 +307,6 @@ export default function InviteForSpeaker() {
               </button>
             </div>
 
-            {/* GO TO PAGE */}
             <div className="go-to-page d-flex align-items-center gap-2">
               <input
                 type="number"
